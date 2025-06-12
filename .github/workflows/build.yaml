@@ -1,0 +1,94 @@
+name: Build and Deploy dbLogApp
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  REGISTRY: harbor.freshbrewed.science
+  IMAGE_REPO: freshbrewedprivate/mydblogapp
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Harbor registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.CRUSER }}
+          password: ${{ secrets.CRPASS }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_REPO }}:${{ github.sha }}
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Write kubeconfig
+        run: |
+          echo "${{ secrets.KUBECONFIG }}" | base64 -d > kubeconfig
+        shell: bash
+
+      - name: Create namespace if not exists
+        run: |
+          kubectl --kubeconfig kubeconfig get namespace mylogapp || \
+          kubectl --kubeconfig kubeconfig create namespace mylogapp
+
+      - name: Create imagePullSecret in cluster
+        run: |
+          kubectl --kubeconfig kubeconfig -n mylogapp delete secret harbor-freshbrewed-science --ignore-not-found
+          kubectl --kubeconfig kubeconfig -n mylogapp create secret docker-registry harbor-freshbrewed-science \
+            --docker-server=harbor.freshbrewed.science \
+            --docker-username="${{ secrets.CRUSER }}" \
+            --docker-password="${{ secrets.CRPASS }}"
+        env:
+          CRUSER: ${{ secrets.CRUSER }}
+          CRPASS: ${{ secrets.CRPASS }}
+
+      - name: Deploy with Helm
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASS: ${{ secrets.DB_PASS }}
+          DB_SSLMODE: ${{ secrets.DB_SSLMODE }}
+        run: |
+          helm upgrade --install dblogapp ./chart \
+            --namespace mylogapp --create-namespace \
+            --kubeconfig kubeconfig \
+            --set image.repository=${{ env.REGISTRY }}/${{ env.IMAGE_REPO }} \
+            --set imagePullSecrets.enabled=true \
+            --set imagePullSecrets.name=harbor-freshbrewed-science \
+            --set image.tag=${{ github.sha }} \
+            --set env.DB_HOST="$DB_HOST" \
+            --set env.DB_PORT="$DB_PORT" \
+            --set env.DB_NAME="$DB_NAME" \
+            --set env.DB_USER="$DB_USER" \
+            --set env.DB_PASS="$DB_PASS" \
+            --set env.DB_SSLMODE="$DB_SSLMODE" \
+            --set ingress.enabled=true \
+            --set ingress.className=nginx \
+            --set ingress.hosts[0].host=dblogapp.tpk.pw \
+            --set ingress.hosts[0].paths[0].path=/ \
+            --set ingress.hosts[0].paths[0].pathType=Prefix \
+            --set ingress.annotations.cert-manager\\.io/cluster-issuer="azuredns-tpkpw" \
+            --set ingress.annotations.kubernetes\\.io/ingress.class="nginx" \
+            --set ingress.annotations.kubernetes\\.io/tls-acme="true" \
+            --set ingress.tls[0].hosts[0]=dblogapp.tpk.pw \
+            --set ingress.tls[0].secretName=dbloghost-tls

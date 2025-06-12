@@ -1,0 +1,49 @@
+replicaCount: 1
+
+app:
+  port: 5000
+
+image:
+  repository: mytestdb
+  tag: "0.1"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 5000
+
+env:
+  DB_HOST: "pg-295c4a9c-isaac-1040.aivencloud.com"
+  DB_PORT: "11996"
+  DB_NAME: "defaultdb"
+  DB_USER: "avnadmin"
+  DB_PASS: "password"
+  DB_SSLMODE: "require"
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: "nginx"
+    # cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: dblogapp.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+    # - secretName: dblogapp-tls
+    #   hosts:
+    #     - dblogapp.local
+
+resources:
+  requests:
+    memory: "20Mi"
+    cpu: "50m"
+  limits:
+    memory: "200Mi"
+    cpu: "1"
+
+imagePullSecrets:
+  enabled: false
+  name: ""
