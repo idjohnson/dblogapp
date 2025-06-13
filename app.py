@@ -76,7 +76,7 @@ def login():
 @app.route('/authorize')
 def authorize():
     token = oauth.google.authorize_access_token()
-    user = oauth.google.parse_id_token(token)
+    user = oauth.google.userinfo()  # Fetch user info from Google
     session['user'] = user
     return redirect('/')
 
