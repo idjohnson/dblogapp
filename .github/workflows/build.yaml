@@ -84,6 +84,8 @@ jobs:
           DB_PASS: ${{ secrets.DB_PASS }}
           DB_SSLMODE: ${{ secrets.DB_SSLMODE }}
           SERVICE_BUS_CONNECTION_STR: ${{ secrets.SERVICE_BUS_CONNECTION_STR }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
         run: |
           helm upgrade --install dblogapp ./chart \
             --namespace mylogapp --create-namespace \
@@ -99,4 +101,6 @@ jobs:
             --set env.DB_PASS="$DB_PASS" \
             --set env.DB_SSLMODE="$DB_SSLMODE" \
             --set env.SERVICE_BUS_CONNECTION_STR="$SERVICE_BUS_CONNECTION_STR" \
+            --set env.GOOGLE_CLIENT_ID="$GOOGLE_CLIENT_ID" \  
+            --set env.GOOGLE_CLIENT_SECRET="$GOOGLE_CLIENT_SECRET" \    
             -f ci-values.yaml

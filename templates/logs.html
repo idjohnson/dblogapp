@@ -17,6 +17,12 @@
     </style>
 </head>
 <body>
+    {% if user %}
+        <div style="float:right;">
+            Logged in as <strong>{{ user['name'] or user['email'] }}</strong>
+            | <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    {% endif %}
     <h1>Contents of '{{ table_name }}' Table</h1>
 
     {% if error_message %}

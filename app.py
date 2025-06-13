@@ -1,4 +1,5 @@
-from flask import Flask, render_template, g
+from flask import Flask, render_template, g, redirect, url_for, session
+from authlib.integrations.flask_client import OAuth
 import psycopg2
 import psycopg2.extras # For dictionary cursor
 import os # For environment variables (recommended for credentials)
@@ -20,6 +21,26 @@ DB_TABLE = "logs"
 
 SERVICE_BUS_CONNECTION_STR = os.getenv("SERVICE_BUS_CONNECTION_STR")
 SERVICE_BUS_QUEUE_NAME = os.getenv("SERVICE_BUS_QUEUE_NAME", "logingest")
+
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+SECRET_KEY = os.getenv("FLASK_SECRET_KEY", "dev_secret_key")  # Should be set in production
+
+app.secret_key = SECRET_KEY
+
+oauth = OAuth(app)
+oauth.register(
+    name='google',
+    client_id=GOOGLE_CLIENT_ID,
+    client_secret=GOOGLE_CLIENT_SECRET,
+    access_token_url='https://oauth2.googleapis.com/token',
+    access_token_params=None,
+    authorize_url='https://accounts.google.com/o/oauth2/auth',
+    authorize_params=None,
+    api_base_url='https://www.googleapis.com/oauth2/v1/',
+    userinfo_endpoint='https://openidconnect.googleapis.com/v1/userinfo',
+    client_kwargs={'scope': 'openid email profile'},
+)
 
 def get_db_connection():
     """Establishes a new database connection."""
@@ -49,12 +70,40 @@ def teardown_request(exception):
     if db_conn is not None:
         db_conn.close()
 
+@app.route('/login')
+def login():
+    redirect_uri = url_for('authorize', _external=True)
+    return oauth.google.authorize_redirect(redirect_uri)
+
+@app.route('/authorize')
+def authorize():
+    token = oauth.google.authorize_access_token()
+    user = oauth.google.parse_id_token(token)
+    session['user'] = user
+    return redirect('/')
+
+@app.route('/logout')
+def logout():
+    session.pop('user', None)
+    return redirect('/')
+
+def login_required(f):
+    from functools import wraps
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 @app.route('/')
+@login_required
 def show_logs():
     if not g.db_conn:
         return render_template('logs.html', 
                                error_message="Failed to connect to the database. Please check server logs and configuration.", 
-                               table_name=DB_TABLE, logs=[], columns=[])
+                               table_name=DB_TABLE, logs=[], columns=[],
+                               user=session.get('user'))
 
     logs_data = []
     column_names = []
@@ -70,13 +119,13 @@ def show_logs():
     except psycopg2.Error as e:
         print(f"Database query error: {e}")
         error = f"Error fetching data from table '{DB_TABLE}': {e}"
-        # You might want to rollback if it was a write operation, g.db_conn.rollback()
 
     return render_template('logs.html', 
                            logs=logs_data, 
                            columns=column_names, 
                            table_name=DB_TABLE, 
-                           error_message=error)
+                           error_message=error,
+                           user=session.get('user'))
 
 def process_service_bus_messages():
     if not SERVICE_BUS_CONNECTION_STR:

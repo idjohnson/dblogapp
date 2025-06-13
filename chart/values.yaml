@@ -20,6 +20,9 @@ env:
   DB_PASS: "password"
   DB_SSLMODE: "require"
   SERVICE_BUS_CONNECTION_STR: "Endpoint=sb://mytestservicebus.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=your_shared_access_key"
+  GOOGLE_CLIENT_ID: ""
+  GOOGLE_CLIENT_SECRET: ""
+  FLASK_SECRET_KEY: "dev_secret_key"
 
 ingress:
   enabled: false
@@ -39,11 +42,11 @@ ingress:
 
 resources:
   requests:
-    memory: "20Mi"
-    cpu: "50m"
+    cpu: "15m"
+    memory: "105M"
   limits:
-    memory: "200Mi"
-    cpu: "1"
+    cpu: "100m"
+    memory: "200M"
 
 imagePullSecrets:
   enabled: false

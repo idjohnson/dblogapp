@@ -39,6 +39,12 @@ spec:
               value: {{ .Values.env.DB_SSLMODE | quote }}
             - name: SERVICE_BUS_CONNECTION_STR
               value: {{ .Values.env.SERVICE_BUS_CONNECTION_STR | quote }}
+            - name: GOOGLE_CLIENT_ID
+              value: {{ .Values.env.GOOGLE_CLIENT_ID | quote }}
+            - name: GOOGLE_CLIENT_SECRET
+              value: {{ .Values.env.GOOGLE_CLIENT_SECRET | quote }}
+            - name: FLASK_SECRET_KEY
+              value: {{ .Values.env.FLASK_SECRET_KEY | quote }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           readinessProbe:

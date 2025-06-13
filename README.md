@@ -71,3 +71,18 @@ Then you can push the message
 $ export SERVICE_BUS_CONNECTION_STR="Endpoint=sb://daprpubsubdemo1.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=xxxxxxxxxxxx
 $ python3 send_message.py
 ```
+
+# Google IdP
+
+This will require users to login with a Google account.
+
+To create an OAuth credential, you can go to [https://console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials) and create a new "OAuth Client ID"
+
+Assuming the root URL of "https://dblogapp.example.com", you can use the following
+
+Authorized JavaScript Origins: https://dblogapp.example.com
+Authorized Redirect URIs: https://dblogapp.example.com/authorize
+
+Here is an example for my own:
+
+![docs/images/gcpoauth01.png](docs/images/gcpoauth01.png)
