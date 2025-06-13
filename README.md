@@ -46,3 +46,17 @@ Press CTRL+C to quit
  * Debugger PIN: 779-498-882
 172.17.0.1 - - [12/Jun/2025 20:21:50] "GET / HTTP/1.1" 200 -
 ```
+
+
+# Az Service Bus Test
+
+First, setup the environment
+```
+$ pip3 install azure-servicebus --break-system-packages
+```
+
+Then you can push the message
+```
+$ export SERVICE_BUS_CONNECTION_STR="Endpoint=sb://daprpubsubdemo1.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=xxxxxxxxxxxx
+$ python3 send_message.py
+```
