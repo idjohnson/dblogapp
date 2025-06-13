@@ -1,7 +1,13 @@
 
 # Logs DB
 
-An app for testing ingestion of logs from a remote service
+An app for testing ingestion of logs from a remote service.
+
+This uses a deployment in Kubernetes, an Azure Service Bus Queue and a PostgreSQL database.
+
+In my case, I'm using a free-tier instance in Aiven.io for the Database (but one could host PostgreSQL anywhere).
+
+Before using the databse, please use the script in 'dbinit.sql' to set up the initial tables and (optional) sample data.
 
 # Local Testing
 
