@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PostgreSQL Table Viewer - {{ table_name }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; color: #333; }
+        h1 { color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; box-shadow: 0 2px 3px rgba(0,0,0,0.1); }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #007bff; color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        tr:hover { background-color: #f1f1f1; }
+        .no-data { color: #777; font-style: italic; margin-top: 20px; }
+        .error { color: #d9534f; font-weight: bold; background-color: #f2dede; border: 1px solid #ebccd1; padding: 15px; margin-top: 20px; border-radius: 4px;}
+    </style>
+</head>
+<body>
+    <h1>Contents of '{{ table_name }}' Table</h1>
+
+    {% if error_message %}
+        <p class="error">{{ error_message }}</p>
+    {% endif %}
+
+    {% if logs and columns %}
+        <table>
+            <thead>
+                <tr>
+                    {% for col_name in columns %}
+                        <th>{{ col_name }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in logs %}
+                <tr>
+                    {% for col_name in columns %}
+                        <td>{{ row[col_name] }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% elif not error_message %}
+        <p class="no-data">No data found in the '{{ table_name }}' table, or the table is empty.</p>
+    {% endif %}
+</body>
+</html>
