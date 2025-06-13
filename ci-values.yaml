@@ -1,6 +1,5 @@
 ingress:
   enabled: true
-  className: nginx
   hosts:
     - host: dblogapp.tpk.pw
       paths:
