@@ -19,6 +19,7 @@ env:
   DB_USER: "avnadmin"
   DB_PASS: "password"
   DB_SSLMODE: "require"
+  SERVICE_BUS_CONNECTION_STR: "Endpoint=sb://mytestservicebus.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=your_shared_access_key"
 
 ingress:
   enabled: false

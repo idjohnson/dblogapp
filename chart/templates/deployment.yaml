@@ -37,6 +37,8 @@ spec:
               value: {{ .Values.env.DB_PASS | quote }}
             - name: DB_SSLMODE
               value: {{ .Values.env.DB_SSLMODE | quote }}
+            - name: SERVICE_BUS_CONNECTION_STR
+              value: {{ .Values.env.SERVICE_BUS_CONNECTION_STR | quote }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           readinessProbe:

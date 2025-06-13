@@ -2,6 +2,8 @@ from flask import Flask, render_template, g
 import psycopg2
 import psycopg2.extras # For dictionary cursor
 import os # For environment variables (recommended for credentials)
+import threading
+from azure.servicebus import ServiceBusClient, ServiceBusMessage
 
 app = Flask(__name__)
 
@@ -15,6 +17,9 @@ DB_USER = os.getenv("DB_USER", "myuser")
 DB_PASS = os.getenv("DB_PASS", "mypass")
 DB_SSLMODE = os.getenv("DB_SSLMODE", "prefer")
 DB_TABLE = "logs"
+
+SERVICE_BUS_CONNECTION_STR = os.getenv("SERVICE_BUS_CONNECTION_STR")
+SERVICE_BUS_QUEUE_NAME = os.getenv("SERVICE_BUS_QUEUE_NAME", "logingest")
 
 def get_db_connection():
     """Establishes a new database connection."""
@@ -72,6 +77,40 @@ def show_logs():
                            columns=column_names, 
                            table_name=DB_TABLE, 
                            error_message=error)
+
+def process_service_bus_messages():
+    if not SERVICE_BUS_CONNECTION_STR:
+        print("No Azure Service Bus connection string provided.")
+        return
+    servicebus_client = ServiceBusClient.from_connection_string(conn_str=SERVICE_BUS_CONNECTION_STR, logging_enable=True)
+    with servicebus_client:
+        receiver = servicebus_client.get_queue_receiver(queue_name=SERVICE_BUS_QUEUE_NAME)
+        with receiver:
+            print("Listening for Service Bus messages...")
+            for msg in receiver:
+                try:
+                    # Assume message body is a string or JSON string
+                    body = str(msg)
+                    print(f"Received message: {body}")
+                    # Insert into DB (customize parsing as needed)
+                    with get_db_connection() as conn:
+                        with conn.cursor() as cur:
+                            cur.execute(
+                                f"INSERT INTO {DB_TABLE} (log_level, message) VALUES (%s, %s)",
+                                ("INFO", body)
+                            )
+                            conn.commit()
+                    receiver.complete_message(msg)
+                except Exception as e:
+                    print(f"Error processing message: {e}")
+                    receiver.abandon_message(msg)
+
+def start_service_bus_listener():
+    t = threading.Thread(target=process_service_bus_messages, daemon=True)
+    t.start()
+
+# Start the Service Bus listener in the background when the app starts
+start_service_bus_listener()
 
 if __name__ == '__main__':
     # IMPORTANT: Set debug=False in a production environment!
