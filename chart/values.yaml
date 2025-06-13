@@ -4,8 +4,8 @@ app:
   port: 5000
 
 image:
-  repository: mytestdb
-  tag: "0.1"
+  repository: idjohnson/mydblogapp
+  tag: "latest"
   pullPolicy: IfNotPresent
 
 service:

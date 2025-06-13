@@ -11,6 +11,11 @@ Before using the databse, please use the script in 'dbinit.sql' to set up the in
 
 # Local Testing
 
+I have published a container you can use in [Dockerhub](https://hub.docker.com/repository/docker/idjohnson/mydblogapp/tags) if you do not wish to build locally.
+
+```
+$ docker pull idjohnson/mydblogapp:latest
+```
 
 ## Building
 
