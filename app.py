@@ -5,8 +5,10 @@ import psycopg2.extras # For dictionary cursor
 import os # For environment variables (recommended for credentials)
 import threading
 from azure.servicebus import ServiceBusClient, ServiceBusMessage
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)  # Add this line
 
 # --- Database Configuration ---
 # It's highly recommended to use environment variables for sensitive data in production.
