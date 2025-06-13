@@ -27,6 +27,7 @@ GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 SECRET_KEY = os.getenv("FLASK_SECRET_KEY", "dev_secret_key")  # Should be set in production
 
 app.secret_key = SECRET_KEY
+app.config['PREFERRED_URL_SCHEME'] = 'https'
 
 oauth = OAuth(app)
 oauth.register(
