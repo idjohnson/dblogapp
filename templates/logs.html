@@ -15,6 +15,8 @@
         .no-data { color: #777; font-style: italic; margin-top: 20px; }
         .error { color: #d9534f; font-weight: bold; background-color: #f2dede; border: 1px solid #ebccd1; padding: 15px; margin-top: 20px; border-radius: 4px;}
     </style>
+    <!-- Add Tablesort.js from CDN -->
+    <script src="https://unpkg.com/tablesort@5.2.1/dist/tablesort.min.js"></script>
 </head>
 <body>
     {% if user %}
@@ -30,7 +32,7 @@
     {% endif %}
 
     {% if logs and columns %}
-        <table>
+        <table id="logs-table">
             <thead>
                 <tr>
                     {% for col_name in columns %}
@@ -48,6 +50,10 @@
                 {% endfor %}
             </tbody>
         </table>
+        <script>
+            // Initialize Tablesort on the logs table
+            new Tablesort(document.getElementById('logs-table'));
+        </script>
     {% elif not error_message %}
         <p class="no-data">No data found in the '{{ table_name }}' table, or the table is empty.</p>
     {% endif %}
